@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   Tokens del sistema de diseño.
+   Salen del mockup (mockups/assets/css/estilos.css): el portal debe verse igual
+   que la referencia. En Tailwind v4 cada `--color-*` genera las utilidades
+   (bg-panel, text-texto-2, border-borde, ...), así que NO escribir colores
+   literales en los componentes: usar las utilidades o agregar el token acá.
+   ============================================================================ */
+
+@theme {
+  /* Superficies */
+  --color-fondo: #0b0f14;
+  --color-panel: #121820;
+  --color-panel-alt: #0f141a;
+  --color-panel-hover: #161d26;
+  --color-borde: #1f2937;
+  --color-borde-suave: #172029;
+
+  /* Texto */
+  --color-texto: #f9fafb;
+  --color-texto-2: #9ca3af;
+  --color-texto-3: #6b7280;
+
+  /* Marca y estados */
+  --color-acento: #f5a623;
+  --color-acento-claro: #fbbf24;
+  --color-exito: #22c55e;
+  --color-alerta: #f59e0b;
+  --color-peligro: #ef4444;
+  --color-info: #3b82f6;
+  --color-morado: #a855f7;
+
+  /* Formas */
+  --radius-tarjeta: 12px;
+  --radius-control: 8px;
+}
+
+/* ============================================================================
+   Base
+   ============================================================================ */
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* El foco visible importa: el portal se navega también con teclado. */
+  :focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+  }
+}
+
+/* ============================================================================
+   Estados que no se expresan bien con utilidades sueltas.
+   ============================================================================ */
+
+@layer components {
+  /* El anillo de progreso necesita SVG, no utilidades. */
+  .anillo__pista {
+    stroke: var(--color-borde);
+  }
+
+  .anillo__valor {
+    stroke: var(--color-exito);
+    stroke-linecap: round;
+    transition: stroke-dasharray 400ms ease;
+  }
+
+  /* Barra de scroll fina en las tablas anchas. */
+  .tabla-scroll::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .tabla-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-borde);
+    border-radius: 999px;
+  }
+
+  /* ------------------------------------------------------------------------
+     Tablas.
+     El th/td se repite en todas las pantallas del portal y escribir esas
+     utilidades en cada `<table>` es ruido: se centralizan acá.
+     ------------------------------------------------------------------------ */
+
+  .tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .tabla th {
+    padding: 8px 10px 8px 0;
+    border-bottom: 1px solid var(--color-borde);
+    color: var(--color-texto-3);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .tabla td {
+    padding: 11px 10px 11px 0;
+    border-bottom: 1px solid var(--color-borde-suave);
+    white-space: nowrap;
+  }
+
+  .tabla tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .tabla tbody tr:hover {
+    background: rgb(255 255 255 / 0.02);
+  }
+
+  /* La última columna no lleva relleno: en tarjetas angostas es lo que hace
+     que el valor se corte contra el borde. */
+  .tabla th:last-child,
+  .tabla td:last-child {
+    padding-right: 0;
+  }
+
+  /* Cifras alineadas a la derecha y con ancho fijo por dígito. */
+  .tabla .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Variante para tarjetas con muchas columnas en poco ancho. */
+  .tabla--compacta {
+    font-size: 12px;
+  }
+
+  .tabla--compacta th {
+    font-size: 10px;
+  }
+
+  .tabla--compacta td {
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+}
