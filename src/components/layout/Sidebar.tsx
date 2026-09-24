@@ -6,6 +6,7 @@ import { EnlaceNav } from "@/components/layout/EnlaceNav";
 import { Marca } from "@/components/layout/Marca";
 import { UsuarioActual } from "@/components/layout/UsuarioActual";
 import { NAVEGACION } from "@/lib/navegacion";
+import type { UsuarioSesion } from "@/lib/tipos/sesion";
 
 /**
  * Barra lateral del portal.
@@ -14,9 +15,10 @@ import { NAVEGACION } from "@/lib/navegacion";
  * componentes. Los ítems salen de `NAVEGACION`, así que agregar una pantalla no
  * toca este archivo.
  *
- * Es cliente únicamente por el estado activo (`usePathname`); no pide datos.
+ * Es cliente únicamente por el estado activo (`usePathname`); no pide datos. El
+ * usuario llega por props desde el layout, que es quien lee la sesión.
  */
-export function Sidebar() {
+export function Sidebar({ usuario }: { usuario: UsuarioSesion }) {
   const ruta = usePathname();
 
   return (
@@ -46,7 +48,7 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-3 border-t border-borde px-5 pt-4">
-        <UsuarioActual />
+        <UsuarioActual usuario={usuario} />
       </div>
 
       <div className="mt-3.5 border-t border-borde-suave px-5 pt-3.5 text-[11px] leading-relaxed text-texto-3">
