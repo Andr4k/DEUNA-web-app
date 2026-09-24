@@ -1,6 +1,6 @@
 import "server-only";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 import {
   DURACION_COOKIE,
@@ -46,12 +46,36 @@ export async function guardarSesion(sesion: SesionPortal): Promise<void> {
 
   almacen.set(NOMBRE_COOKIE, serializarSesion(sesion), {
     httpOnly: true,
-    // En producción el portal va por HTTPS; en desarrollo local no hay TLS.
-    secure: process.env.NODE_ENV === "production",
+    secure: await laConexionEsHttps(),
     sameSite: "lax",
     path: "/",
     maxAge: DURACION_COOKIE,
   });
+}
+
+/**
+ * ¿La cookie debe viajar solo por HTTPS?
+ *
+ * Antes esto era `process.env.NODE_ENV === "production"`, y estaba mal: `npm run
+ * start` sobre `http://` es una compilación de producción **sin TLS**. Una cookie
+ * `Secure` enviada por HTTP el navegador la descarta sin avisar —salvo si el host
+ * es exactamente `localhost`, que es la única razón por la que en la máquina de
+ * desarrollo parecía funcionar—. Consecuencia: entrabas al portal y en la
+ * siguiente navegación ya no había sesión, como si el token se hubiera borrado.
+ *
+ * Lo que decide no es cómo se compiló el portal, sino cómo llegó la petición. El
+ * proxy de producción termina el TLS y lo declara en `x-forwarded-proto`; en
+ * desarrollo, sin esa cabecera, es HTTP y la cookie no lleva `Secure`. Si el
+ * despliegue no pone la cabecera, `COOKIE_SEGURA=true` lo fuerza.
+ */
+async function laConexionEsHttps(): Promise<boolean> {
+  if (process.env.COOKIE_SEGURA === "true") {
+    return true;
+  }
+
+  const cabeceras = await headers();
+  const protocolo = cabeceras.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  return protocolo === "https";
 }
 
 /** Borra la sesión. Solo desde una Server Action. */
