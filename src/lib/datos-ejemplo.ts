@@ -1,10 +1,10 @@
 import type {
   Actividad,
   IndicadoresDelDia,
-  Pedido,
   RendimientoDelDia,
   Zona,
-} from "@/lib/tipos";
+} from "@/lib/tipos/metricas";
+import type { PedidoEnLista } from "@/lib/tipos/pedido";
 
 /**
  * Datos de ejemplo del panel.
@@ -69,7 +69,7 @@ export const ZONAS: Zona[] = [
   { nombre: "Otros", pedidos: 18, entregados: 16, pendientes: 2, recaudo: 24_000 },
 ];
 
-export const ULTIMOS_PEDIDOS: Pedido[] = [
+export const ULTIMOS_PEDIDOS: PedidoEnLista[] = [
   {
     id: "1",
     codigo: "PED-000245",

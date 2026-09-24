@@ -1,7 +1,7 @@
 import { EnlaceAccion } from "@/components/ui/EnlaceAccion";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { ACTIVIDAD } from "@/lib/datos-ejemplo";
-import type { Actividad as ActividadDominio } from "@/lib/tipos";
+import type { Actividad as ActividadDominio } from "@/lib/tipos/metricas";
 
 /** Color del punto según el tipo de novedad. */
 const COLOR: Record<ActividadDominio["tipo"], string> = {

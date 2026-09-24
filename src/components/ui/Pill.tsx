@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Icono } from "@/components/ui/Icono";
-import type { EstadoPedido } from "@/lib/tipos";
+import type { EstadoPedido } from "@/lib/tipos/pedido";
 
 type Variante = "en-curso" | "pendiente" | "entregado" | "incidencia" | "neutro";
 
