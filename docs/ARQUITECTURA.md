@@ -46,6 +46,36 @@ intenta, el build falla. El motivo no es purismo: un componente que hace fetch n
 se puede reusar en otra pantalla, no se puede probar sin red y no se puede
 mostrar con datos de ejemplo.
 
+### Cómo carga el panel sin cargar todo
+
+Cada sección recibe la **promesa** de sus datos y la espera dentro de su propio
+`<Suspense>`:
+
+```tsx
+const panel = metricasService.panel(token);   // arranca la llamada, no la espera
+
+<Suspense fallback={<EsqueletoTarjeta />}>
+  <Indicadores datos={panel} />               {/* la espera es acá adentro */}
+</Suspense>
+```
+
+**Por qué así y no esperando todo en la página.** Si la página hiciera `await` de las
+cuatro llamadas, el panel entero aparecería recién cuando llegue la más lenta. Con la
+promesa, el armazón se pinta al instante y cada sección se rellena por su cuenta: la
+más lenta no frena a las demás.
+
+**Por qué la promesa y no un componente que busque sus datos.** La regla de la capa
+de presentación dice que `components/**` no importa `services/**`. La página es la
+única que conoce el servicio y los componentes reciben lo que necesitan; si cada
+sección se buscara sus datos, esa regla no existiría.
+
+Solo funciona de componente servidor a componente servidor: una promesa no cruza al
+navegador. Es exactamente nuestro caso, y es otra razón del enfoque servidor primero.
+
+**Las llamadas repetidas no se repiten.** Tres secciones usan `/metrics/panel`; Next
+memoriza los `fetch` idénticos dentro de un mismo render, así que sale una sola
+petición al backend.
+
 ## Sesión y protección
 
 Toda la aplicación está detrás del login. `src/middleware.ts` corta la navegación
