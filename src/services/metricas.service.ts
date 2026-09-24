@@ -1,56 +1,60 @@
 import "server-only";
 
-/**
- * Métricas del portal.
- *
- * **Este servicio todavía no tiene implementación porque el backend no expone
- * ningún agregado.** El panel necesita contar pedidos del día, entregas a
- * tiempo, recaudo por zona y calificación promedio; hoy lo único posible es
- * traer los pedidos y sumar en el navegador, que es exactamente lo que no hay
- * que hacer: el agregado es del backend.
- *
- * Las funciones se dejan declaradas con su contrato para que el día que existan
- * los endpoints solo haya que completar el cuerpo, y para que el tipo que
- * espera el panel ya esté acordado.
- *
- * TODO (backend):
- *   GET /api/v1/metrics/panel      → IndicadoresDelDia
- *   GET /api/v1/metrics/zonas      → Zona[]
- *   GET /api/v1/metrics/rendimiento→ RendimientoDelDia
- *   GET /api/v1/metrics/actividad  → Actividad[]
- */
-
+import { pedir } from "@/services/http";
 import type {
   Actividad,
-  IndicadoresDelDia,
   RendimientoDelDia,
+  ResumenPanel,
   Zona,
 } from "@/lib/tipos/metricas";
 
+/**
+ * Métricas del panel — espejo de `Deuna.Metrics.Service`.
+ *
+ * Ese servicio no tiene base propia: lee las bases de los otros servicios con SQL
+ * de solo lectura y devuelve los agregados ya calculados. El portal no suma nada.
+ *
+ * **Los cinco minutos de caché no son un descuido.** Los agregados son los mismos
+ * para cualquier administrador —no hay dato por usuario— así que se pueden
+ * reutilizar, y el panel dice justamente que se actualiza cada cinco minutos. Lo
+ * que sí es por usuario (la sesión) no pasa por acá.
+ */
+const CINCO_MINUTOS = 300;
+
 export const metricasService = {
-  async delPanel(token: string): Promise<IndicadoresDelDia> {
-    return pendiente("GET /api/v1/metrics/panel", token);
+  /** Los cuatro bloques del panel en una sola llamada. */
+  async panel(token: string): Promise<ResumenPanel> {
+    return pedir<ResumenPanel>("/api/v1/metrics/panel", { token, revalidar: CINCO_MINUTOS });
   },
 
-  async porZona(token: string): Promise<Zona[]> {
-    return pendiente("GET /api/v1/metrics/zonas", token);
+  async zonas(token: string): Promise<Zona[]> {
+    return pedir<Zona[]>("/api/v1/metrics/zonas", { token, revalidar: CINCO_MINUTOS });
   },
 
   async rendimiento(token: string): Promise<RendimientoDelDia> {
-    return pendiente("GET /api/v1/metrics/rendimiento", token);
+    return pedir<RendimientoDelDia>("/api/v1/metrics/rendimiento", {
+      token,
+      revalidar: CINCO_MINUTOS,
+    });
   },
 
   async actividad(token: string): Promise<Actividad[]> {
-    return pendiente("GET /api/v1/metrics/actividad", token);
+    return pedir<Actividad[]>("/api/v1/metrics/actividad", { token, revalidar: CINCO_MINUTOS });
   },
 };
 
-/**
- * Falla explícitamente en lugar de devolver datos vacíos: una pantalla en blanco
- * se investiga durante horas; un error que dice qué endpoint falta, no.
- */
-function pendiente<T>(endpoint: string, _token: string): Promise<T> {
-  return Promise.reject(
-    new Error(`El backend todavía no expone ${endpoint} (ver services/metricas.service.ts)`),
-  );
-}
+/* --------------------------------------------------------------------------
+   Lo que el panel necesita y el backend todavía no expone:
+
+   - GET /api/v1/metrics/pedidos?estado=&desde=&hasta=&pagina=
+       Listado global de pedidos con filtros y paginación. Hoy solo existe
+       "pedidos de un restaurante" (`pedidosService.delRestaurante`), que no sirve
+       para el panel del administrador. Es lo que falta para que la tabla "Últimos
+       pedidos" tenga datos.
+   - GET /api/v1/metrics/entregas-demoradas
+       Pedidos que superan el tiempo estimado. Necesita que el pedido guarde un
+       tiempo prometido, que hoy no existe (el radio y el horario están fijos en el
+       código de Orders).
+   - GET /api/v1/metrics/incidencias
+       Incidencias sin resolver. No hay modelo de incidencias todavía.
+   -------------------------------------------------------------------------- */
