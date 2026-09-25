@@ -126,3 +126,44 @@ export interface ResumenServiciosFinalizados {
     tiempoPromedioMin: number | null;
   };
 }
+
+/**
+ * La respuesta del endpoint: el sobre de la página y los KPIs de la cabecera.
+ *
+ * No es un contrato nuevo de datos: compone los dos de arriba sin cambiarles un
+ * campo. Viajan juntos porque salen del MISMO conjunto —son una consulta, no dos que
+ * puedan discrepar—, que es lo que impide el contador que dice 42 con una lista de 38.
+ */
+export interface RespuestaServiciosFinalizados {
+  pagina: PaginaServiciosFinalizados;
+  resumen: ResumenServiciosFinalizados;
+}
+
+/**
+ * Los filtros del historial, tal como los manda el portal.
+ *
+ * Es la forma de la PETICIÓN y sus nombres son los del query string del endpoint.
+ *
+ * `desde` y `hasta` son DÍAS (`YYYY-MM-DD`), que es lo que elige el operador; el
+ * servicio los traduce a los instantes del contrato, donde `hasta` es exclusivo.
+ *
+ * `restauranteId` y `repartidorId` son identificadores y el contrato los tiene, pero
+ * la pantalla todavía no los ofrece: no hay endpoint que liste el catálogo de
+ * restaurantes ni el de domiciliarios, y un campo para pegar un GUID no es una
+ * interfaz. El día que exista el desplegable, el servicio ya los manda.
+ *
+ * `conIncidencia` y `pago` NO están, y no es un olvido: el endpoint los rechaza
+ * mientras no tengan fuente (no existe el modelo de incidencias y "quién paga" sigue
+ * sin decidirse). Mandarlos en `false` o vacío sería afirmar algo que no se sabe.
+ */
+export interface FiltrosServiciosFinalizados {
+  desde?: string;
+  hasta?: string;
+  restauranteId?: string;
+  repartidorId?: string;
+  zona?: string;
+  calificacionMin?: number;
+  buscar?: string;
+  pagina?: number;
+  tamano?: number;
+}
