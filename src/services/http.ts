@@ -44,6 +44,22 @@ interface OpcionesPeticion {
 }
 
 /**
+ * Motivo legible de un error de la API.
+ *
+ * `ErrorApi` ya trae el mensaje que mandó el backend, y para un 400 o un 409 ese
+ * mensaje es un diagnóstico preciso —"el pedido no tiene punto de entrega: no se
+ * puede calcular cercanía"—, así que mostrarlo es mejor que inventar una causa
+ * probable. Inventar ("¿estará caído el servicio?") manda a buscar el problema al
+ * lugar equivocado, y encima tapa el dato que el backend ya había explicado.
+ *
+ * Cualquier otro error sí es opaco: ahí se dice solo lo que se sabe.
+ */
+export function motivoDeError(error: unknown): string {
+  if (error instanceof ErrorApi) return error.message;
+  return "La petición falló y el servidor no explicó por qué.";
+}
+
+/**
  * Ejecuta una petición contra la API y devuelve el cuerpo tipado.
  *
  * No atrapa errores: quien llama decide qué mostrar. Un `catch` genérico acá
