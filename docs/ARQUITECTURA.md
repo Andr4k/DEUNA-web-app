@@ -46,6 +46,56 @@ intenta, el build falla. El motivo no es purismo: un componente que hace fetch n
 se puede reusar en otra pantalla, no se puede probar sin red y no se puede
 mostrar con datos de ejemplo.
 
+## Sesión y protección
+
+Toda la aplicación está detrás del login. `src/middleware.ts` corta la navegación
+**antes** de renderizar: una pantalla protegida no se resuelve ni un instante, así
+que no hay contenido que se filtre antes de redirigir.
+
+```
+navegación  →  middleware  →  ¿cookie válida?  →  página (servidor)
+                    ↓ no
+              /login?destino=<a dónde iba>
+```
+
+**Dónde vive el token.** En una cookie `httpOnly` (`deuna_sesion`). El navegador no
+puede leerla: es la razón de fondo del enfoque servidor primero. Si el token
+estuviera en `localStorage`, cualquier script de la página podría robarlo.
+
+**Qué verifica el middleware y qué no.**
+
+| Verifica | No verifica |
+| :--- | :--- |
+| Que la cookie exista y tenga forma de sesión | La **firma** del token |
+| Que el token no esté vencido | Los permisos finos de cada endpoint |
+| Que el rol pueda entrar al portal | |
+
+La firma la verifica el backend en cada llamada, porque **el portal no tiene la
+clave de Identity y no debería tenerla**. La guarda del portal es de navegación;
+la de la API es de seguridad. Un token manipulado pasa el middleware y muere en la
+API con 401 — y eso es correcto: el portal no es una autoridad.
+
+**El rol es parte de la autorización, no de la interfaz.** Solo entran `ADMIN` y
+`RESTAURANT`. Un domiciliario con credenciales válidas es rechazado en el login: su
+lugar es la app móvil. Ocultar el menú no alcanza — la decisión se toma en el
+servidor, antes de crear la sesión.
+
+**Los tres archivos de la sesión, y por qué están separados:**
+
+| Archivo | Por qué |
+| :--- | :--- |
+| `lib/tipos/sesion.ts` | Los roles y el contrato. Sin lógica |
+| `lib/sesion.ts` | Puro (no importa `next/headers`): lo usa el **middleware**, que corre en el Edge y no tiene `cookies()` |
+| `lib/sesion-servidor.ts` | `cookies()` de Next: leer y escribir la cookie desde el servidor |
+
+Esa separación no es decorativa: si el middleware importara un módulo con
+`next/headers`, el build falla.
+
+**Escribir la cookie solo se puede en una Server Action o un Route Handler.** Next
+lo bloquea durante el render. Por eso el refresco automático de token no está
+hecho: necesita una de esas dos puertas, y hacerlo a medias sería peor que
+anotarlo. El token dura 8 horas, así que hoy no molesta.
+
 ## Las reglas
 
 | Regla | Cómo se aplica |

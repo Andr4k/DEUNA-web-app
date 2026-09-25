@@ -1,4 +1,4 @@
-import { Alerta } from "@/components/ui/Alerta";
+import { BloqueAtencion } from "@/components/ui/BloqueAtencion";
 import { EnlaceAccion } from "@/components/ui/EnlaceAccion";
 import { ALERTAS } from "@/lib/datos-ejemplo";
 
@@ -19,7 +19,7 @@ export function AlertasAtencion() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Alerta
+        <BloqueAtencion
           tono="peligro"
           icono="alerta"
           titulo="Pedidos sin asignar"
@@ -28,7 +28,7 @@ export function AlertasAtencion() {
           accion="Ver pedidos"
           href="/pedidos?estado=Buscando"
         />
-        <Alerta
+        <BloqueAtencion
           tono="alerta"
           icono="reloj"
           titulo="Pedidos demorados"
@@ -37,7 +37,7 @@ export function AlertasAtencion() {
           accion="Ver pedidos"
           href="/pedidos?demorados=true"
         />
-        <Alerta
+        <BloqueAtencion
           tono="morado"
           icono="info"
           titulo="Incidencias sin resolver"
