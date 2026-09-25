@@ -5,10 +5,13 @@
  * pantalla es agregar una entrada y crear su `page.tsx` en la ruta indicada.
  */
 
+import type { NombreIcono } from "@/lib/iconos";
+
 export interface ItemNavegacion {
   etiqueta: string;
   href: string;
-  icono: string;
+  /** Tipado con el set real de iconos: un nombre mal escrito no compila. */
+  icono: NombreIcono;
   /** Contador que se muestra como badge rojo (0 = sin badge). */
   contador?: number;
 }
