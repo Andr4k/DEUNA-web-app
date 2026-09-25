@@ -151,3 +151,109 @@
     padding-bottom: 9px;
   }
 }
+
+/* ============================================================================
+   Marcadores del mapa.
+   Los dibuja Leaflet como HTML (`divIcon`), no como imágenes: las imágenes por
+   defecto de Leaflet se resuelven por una ruta relativa que el bundler reescribe
+   y quedan rotas, y además no siguen los tokens del tema. La FORMA distingue
+   cada capa y el color también, así el mapa se sigue leyendo impreso o para
+   quien no distingue colores.
+   ============================================================================ */
+
+@layer components {
+  .marcador,
+  .punto {
+    display: block;
+    background: var(--marca);
+  }
+
+  .marcador {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-panel);
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.5);
+  }
+
+  /* Mismo color y misma forma en el mapa y en la leyenda: lo único que cambia
+     es el tamaño. */
+  .punto {
+    width: 10px;
+    height: 10px;
+  }
+
+  .marca-libre {
+    --marca: var(--color-exito);
+    border-radius: 999px;
+  }
+
+  .marca-ocupado {
+    --marca: var(--color-acento);
+    border-radius: 999px;
+  }
+
+  /* Sin telemetría vigente: hueco y punteado, en su última posición conocida.
+     Se muestra igual a propósito —no se oculta—: si desapareciera, "la flota no
+     está reportando" y "no hay flota" se verían idénticos. */
+  .marca-sin-vigencia {
+    --marca: transparent;
+    border: 2px dashed var(--color-texto-3);
+    border-radius: 999px;
+  }
+
+  .marca-pedido {
+    --marca: var(--color-info);
+    border-radius: 2px;
+  }
+
+  .marca-restaurante {
+    --marca: var(--color-morado);
+    border-radius: 2px;
+    transform: rotate(45deg);
+  }
+}
+
+/* ============================================================================
+   Leaflet.
+   Va FUERA de @layer a propósito: los estilos que trae `leaflet.css` no están en
+   ninguna capa, y en CSS una regla que sí está en una capa pierde siempre contra
+   una sin capa, por más específica que sea. Por eso estas van sin capa y con el
+   selector duplicado: así ganan por especificidad sin depender del orden en que
+   el bundler junte los dos archivos.
+   ============================================================================ */
+
+.leaflet-container.leaflet-container {
+  background: var(--color-panel-alt);
+  font-family: inherit;
+}
+
+.leaflet-container.leaflet-container .leaflet-control-attribution {
+  background: var(--color-fondo);
+  color: var(--color-texto-3);
+}
+
+.leaflet-container.leaflet-container .leaflet-control-attribution a {
+  color: var(--color-texto-2);
+}
+
+.leaflet-container.leaflet-container .leaflet-bar a {
+  background: var(--color-panel);
+  border-bottom-color: var(--color-borde);
+  color: var(--color-texto);
+}
+
+.leaflet-container.leaflet-container .leaflet-bar a:hover {
+  background: var(--color-panel-hover);
+}
+
+.leaflet-container.leaflet-container .leaflet-popup-content-wrapper,
+.leaflet-container.leaflet-container .leaflet-popup-tip {
+  background: var(--color-panel);
+  color: var(--color-texto);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.5);
+}
+
+.leaflet-container.leaflet-container .leaflet-popup-content {
+  margin: 8px 10px;
+  font-size: 12px;
+}
