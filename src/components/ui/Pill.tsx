@@ -58,6 +58,16 @@ export function PillEstadoPedido({ estado }: { estado: EstadoPedido }) {
   );
 }
 
+/**
+ * Etiqueta del estado en lenguaje del operador.
+ *
+ * Se exporta para las secciones que muestran el estado sin el pill, como el
+ * desglose de "Pedidos de hoy". Sigue habiendo una sola traducción: la de acá.
+ */
+export function etiquetaDeEstado(estado: EstadoPedido): string {
+  return PRESENTACION[estado].etiqueta;
+}
+
 /** Variante suelta para usos que no son un estado de pedido (p. ej. incidencias). */
 export function PillIncidencia() {
   return (

@@ -50,9 +50,6 @@ export function Topbar({ usuario }: { usuario: UsuarioSesion }) {
           className="relative inline-flex text-texto-2 transition-colors hover:text-texto"
         >
           <Icono nombre="campana" tamano={22} />
-          <span className="absolute -top-1.5 -right-2 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-acento px-1.5 text-[11px] font-bold text-fondo">
-            9
-          </span>
         </button>
 
         <div className="flex items-center gap-2.5">

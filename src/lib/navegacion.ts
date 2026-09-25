@@ -12,8 +12,6 @@ export interface ItemNavegacion {
   href: string;
   /** Tipado con el set real de iconos: un nombre mal escrito no compila. */
   icono: NombreIcono;
-  /** Contador que se muestra como badge rojo (0 = sin badge). */
-  contador?: number;
 }
 
 export interface SeccionNavegacion {
@@ -26,7 +24,7 @@ export const NAVEGACION: SeccionNavegacion[] = [
     titulo: "Principal",
     items: [
       { etiqueta: "Panel principal", href: "/", icono: "home" },
-      { etiqueta: "Pedidos", href: "/pedidos", icono: "pedidos", contador: 12 },
+      { etiqueta: "Pedidos", href: "/pedidos", icono: "pedidos" },
       { etiqueta: "Restaurantes", href: "/restaurantes", icono: "tienda" },
       { etiqueta: "Domiciliarios", href: "/domiciliarios", icono: "moto" },
       { etiqueta: "Usuarios", href: "/usuarios", icono: "usuario" },

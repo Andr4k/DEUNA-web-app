@@ -62,3 +62,9 @@ export function variacion(valor: number, sufijo = "%"): string {
   const flecha = valor >= 0 ? "▲" : "▼";
   return `${flecha} ${Math.abs(valor)}${sufijo}`;
 }
+
+/** "▲ $9.000" — igual que `variacion`, pero con la cifra en pesos. */
+export function variacionMoneda(valor: number): string {
+  const flecha = valor >= 0 ? "▲" : "▼";
+  return `${flecha} ${MONEDA.format(Math.abs(valor))}`;
+}

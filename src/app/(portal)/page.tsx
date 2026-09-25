@@ -1,3 +1,6 @@
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+
 import { ActividadReciente } from "@/components/panel/ActividadReciente";
 import { AlertasAtencion } from "@/components/panel/AlertasAtencion";
 import { Indicadores } from "@/components/panel/Indicadores";
@@ -5,30 +8,63 @@ import { Rendimiento } from "@/components/panel/Rendimiento";
 import { ResumenOperativo } from "@/components/panel/ResumenOperativo";
 import { UltimosPedidos } from "@/components/panel/UltimosPedidos";
 import { Boton } from "@/components/ui/Boton";
+import { EsqueletoTarjeta } from "@/components/ui/Esqueleto";
 import { Icono } from "@/components/ui/Icono";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+import { obtenerToken } from "@/lib/sesion-servidor";
+import { metricasService } from "@/services/metricas.service";
 
 /**
  * Panel principal del administrador.
  *
- * Las secciones viven en `components/panel/`: esta pantalla solo las ordena en
- * las filas del layout. Cuando la API esté conectada, cada sección recibe sus
- * datos por props y esta página los pide (o los deja a un componente servidor).
+ * Las cuatro llamadas arrancan acá y **no se esperan**: cada sección recibe la
+ * promesa y la espera dentro de su propio límite de Suspense. Eso es lo que hace que
+ * el panel no cargue de una sola vez — el armazón aparece al instante y cada sección
+ * se rellena cuando llega su dato, sin que la más lenta frene a las demás.
+ *
+ * Ninguna sección pide datos por su cuenta: la página es la única que conoce el
+ * servicio, y los componentes reciben lo que necesitan. Es la regla de la capa de
+ * presentación, y ESLint la sostiene.
  */
-export default function PanelPrincipal() {
+export default async function PanelPrincipal() {
+  const token = await obtenerToken();
+
+  // El middleware ya garantiza la sesión; esto cubre el token que vence entre el
+  // middleware y el render, y le dice al compilador que hay token.
+  if (!token) {
+    redirect("/login");
+  }
+
+  const panel = metricasService.panel(token);
+  const zonas = metricasService.zonas(token);
+  const rendimiento = metricasService.rendimiento(token);
+  const actividad = metricasService.actividad(token);
+
   return (
     <>
-      <Indicadores />
-      <AlertasAtencion />
-      <ResumenOperativo />
+      <Suspense fallback={<FilaKpi />}>
+        <Indicadores datos={panel} />
+      </Suspense>
+
+      <Suspense fallback={<EsqueletoTarjeta lineas={2} />}>
+        <AlertasAtencion datos={panel} />
+      </Suspense>
+
+      <Suspense fallback={<EsqueletoTarjeta lineas={4} />}>
+        <ResumenOperativo panel={panel} zonas={zonas} />
+      </Suspense>
 
       <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
         <UltimosPedidos />
-        <ActividadReciente />
+        <Suspense fallback={<EsqueletoTarjeta lineas={5} />}>
+          <ActividadReciente eventos={actividad} />
+        </Suspense>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
-        <Rendimiento />
+        <Suspense fallback={<EsqueletoTarjeta lineas={3} />}>
+          <Rendimiento rendimiento={rendimiento} />
+        </Suspense>
 
         <Tarjeta titulo="Cierre del día">
           <div className="flex h-full flex-col justify-between gap-3">
@@ -51,5 +87,16 @@ export default function PanelPrincipal() {
         Los datos se actualizan automáticamente cada 5 minutos.
       </p>
     </>
+  );
+}
+
+/** Esqueleto con la forma de la fila de indicadores, para el primer pintado. */
+function FilaKpi() {
+  return (
+    <div className="grid gap-4 xl:grid-cols-[repeat(4,1fr)_1.3fr]">
+      {Array.from({ length: 5 }, (_, indice) => (
+        <EsqueletoTarjeta key={indice} lineas={2} />
+      ))}
+    </div>
   );
 }
