@@ -52,6 +52,21 @@ export const COLOR_ESTRELLA: Record<1 | 2 | 3 | 4 | 5, string> = {
   1: "bg-peligro",
 };
 
+/**
+ * La MISMA escala, en la forma que necesita el trazo de un SVG (el donut de la
+ * distribución). Va aparte porque una utilidad de Tailwind tiene que estar escrita en
+ * el código para que el compilador la genere: `bg-` no se puede armar en tiempo de
+ * ejecución. Las dos listas son el mismo nivel→color, así que si cambia una cambia la
+ * otra — el 5 verde y el 1 rojo en todas partes.
+ */
+export const COLOR_ESTRELLA_TRAZO: Record<1 | 2 | 3 | 4 | 5, string> = {
+  5: "var(--color-exito)",
+  4: "var(--color-info)",
+  3: "var(--color-alerta)",
+  2: "var(--color-morado)",
+  1: "var(--color-peligro)",
+};
+
 /** Los cinco niveles, de 5 a 1: el orden en que se leen la distribución y la barra. */
 export const NIVELES: (1 | 2 | 3 | 4 | 5)[] = [5, 4, 3, 2, 1];
 
