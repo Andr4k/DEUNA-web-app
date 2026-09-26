@@ -36,24 +36,32 @@ npm run lint    # ESLint + reglas de arquitectura (tamaño y capas)
 
 ```
 src/
+  middleware.ts              Guarda: sin sesión válida no se llega a ninguna pantalla
   app/                       Rutas. Solo composición.
     globals.css              Tokens del diseño + base + tablas
     layout.tsx               Raíz: idioma, tipografía, metadatos
+    login/
+      page.tsx               Acceso (fuera del shell: todavía no hay sesión que mostrar)
+      actions.ts             Server Actions de entrar y salir
     (portal)/
       layout.tsx             Shell del portal: barra lateral + barra superior
       page.tsx               Panel principal (la pantalla construida)
       pedidos/page.tsx       … 11 rutas más, con su componente `Pendiente`
   components/                Presentación. Nunca piden datos.
+    auth/                    FormularioLogin
     layout/                  Sidebar, Topbar, Marca, EnlaceNav, UsuarioActual
     panel/                   Secciones del panel, una por archivo
-    ui/                      Primitivas reutilizables (Tarjeta, Tabla, Kpi, Pill, …)
+    ui/                      Primitivas reutilizables (Tarjeta, Tabla, Campo, Aviso, …)
   services/                  Acceso a la API. `server-only`.
     http.ts                  Cliente base (gateway, errores, token)
+    sesion.service.ts        ← espejo de Identity (login, logout, refresh)
     pedidos.service.ts       ← espejo de Orders
     entregas.service.ts      ← espejo de Delivery
-    sesion.service.ts        ← espejo de Identity
     metricas.service.ts      ← todavía sin endpoints del otro lado
   lib/                       Utilidades puras, tipos y datos
+    sesion.ts                Cookie de sesión (puro: lo usa también el middleware)
+    sesion-servidor.ts       Lectura y escritura de la cookie en el servidor
+    tipos/sesion.ts          Roles y contratos de la sesión
     tipos/pedido.ts          Estados y contratos del pedido
     tipos/metricas.ts        Agregados del panel
     tipos/repartidor.ts      Domiciliarios
@@ -61,11 +69,37 @@ src/
     iconos.tsx               Trazados SVG (datos)
     formato.ts               Moneda, hora, duración, porcentaje
     navegacion.ts            Ítems de la barra lateral
-    sesion.ts                Usuario en sesión (temporal)
     datos-ejemplo.ts         Datos de mentira mientras no hay backend conectado
 docs/ARQUITECTURA.md         Las reglas y el por qué
 mockups/                     Mockup HTML aprobado, como referencia visual
 ```
+
+## Acceso y sesión
+
+Toda la aplicación está detrás del login: el `middleware.ts` corta la navegación
+antes de renderizar cualquier pantalla protegida.
+
+- **El token vive en una cookie `httpOnly`** (`deuna_sesion`), así que el navegador
+  nunca lo ve. Por eso las lecturas se resuelven en el servidor.
+- **Se entra con el login de Identity** (`POST /api/v1/identity/login`): el portal no
+  inventa autenticación. El token dura 8 horas.
+- **Solo entran `ADMIN` y `RESTAURANT`.** Un domiciliario o un cliente con credenciales
+  válidas es rechazado: tienen su propia app.
+- **El middleware no verifica la firma del token.** Eso lo hace el backend en cada
+  llamada — el portal no tiene la clave de Identity, y no debería tenerla. La guarda del
+  portal es de navegación; la de la API es de seguridad.
+
+### Cuenta de desarrollo
+
+No hay ruta para crear administradores (solo `register/restaurant` y `register/rider`),
+así que para desarrollo se sembró una a mano en la base de Identity:
+
+```
+admin@deuna.local  /  Admin123!
+```
+
+Cuando el backoffice sea real hace falta una ruta de alta de administradores con rol
+ADMIN. Es un pendiente de seguridad, no una comodidad.
 
 ## Cómo agregar una pantalla
 

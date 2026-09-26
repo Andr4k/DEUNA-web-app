@@ -8,9 +8,19 @@ interface Props {
   etiqueta: string;
   valor: string;
   periodo?: string;
-  variacion: string;
+  /**
+   * Variación contra ayer, ya formateada. Es OPCIONAL: una tarjeta que no tiene con
+   * qué compararse (una calificación promedio, un dato que todavía no existe) no
+   * puede mostrar una fila de tendencia vacía que igual diga "vs ayer".
+   */
+  variacion?: string;
   /** `true` cuando la variación es negativa respecto de ayer. */
   baja?: boolean;
+  /**
+   * La variación no es buena ni mala porque no hay con qué comparar. Va en gris en
+   * lugar del verde de "subió": un "sin dato" pintado de verde afirma que mejoró.
+   */
+  neutro?: boolean;
   /** Acción opcional en la fila de la tendencia (p. ej. "Ver finanzas"). */
   accion?: React.ReactNode;
 }
@@ -29,6 +39,7 @@ export function Kpi({
   periodo,
   variacion,
   baja = false,
+  neutro = false,
   accion,
 }: Props) {
   return (
@@ -47,15 +58,21 @@ export function Kpi({
         </div>
       </div>
 
-      <div
-        className={`mt-2.5 flex items-center gap-1.5 border-t border-borde-suave pt-2.5 text-xs ${
-          baja ? "text-peligro" : "text-exito"
-        }`}
-      >
-        <span>{variacion}</span>
-        <span className="text-texto-3">vs ayer</span>
-        {accion ? <span className="ml-auto">{accion}</span> : null}
-      </div>
+      {variacion || accion ? (
+        <div
+          className={`mt-2.5 flex items-center gap-1.5 border-t border-borde-suave pt-2.5 text-xs ${
+            neutro ? "text-texto-3" : baja ? "text-peligro" : "text-exito"
+          }`}
+        >
+          {variacion ? (
+            <>
+              <span>{variacion}</span>
+              <span className="text-texto-3">vs ayer</span>
+            </>
+          ) : null}
+          {accion ? <span className="ml-auto">{accion}</span> : null}
+        </div>
+      ) : null}
     </article>
   );
 }

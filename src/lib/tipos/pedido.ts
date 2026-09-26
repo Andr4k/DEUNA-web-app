@@ -95,3 +95,69 @@ export interface PedidoEnLista {
   /** Minutos desde la creación; `null` si el pedido todavía no arrancó. */
   minutosTranscurridos: number | null;
 }
+
+/* --------------------------------------------------------------------------
+   Listado de administración: pedidos sin asignar.
+
+   Contrato de `GET /api/v1/admin/orders/sin-asignar` (rol ADMIN). NO es el mismo
+   modelo que `Pedido`: aquel es el pedido de Orders con identificadores, y este
+   llega ya resuelto para operar —nombre del restaurante, zona, minutos de espera
+   y valor del domicilio— porque el endpoint lo arma para esa pantalla. Tipar uno
+   como el otro haría que el portal leyera campos que no vienen.
+   -------------------------------------------------------------------------- */
+
+/** Prioridad con la que el backend clasifica el pedido mientras espera. */
+export type PrioridadPedido = "Alta" | "Media" | "Baja";
+
+/** Un pedido esperando domiciliario, tal como lo devuelve el listado. */
+export interface PedidoSinAsignar {
+  pedidoId: string;
+  codigo: string;
+  /** Nombre del restaurante, ya resuelto por el backend. */
+  restaurante: string;
+  /** ISO 8601. */
+  recogerEn: string;
+  /** ISO 8601. */
+  entregarEn: string;
+  /** ISO 8601. */
+  generadoEn: string;
+  minutosEsperando: number;
+  /**
+   * Hoy siempre "Buscando": el endpoint devuelve, justamente, los que no tienen
+   * domiciliario. Se tipa con el conjunto completo de estados para que
+   * `PillEstadoPedido` lo acepte y para que un estado nuevo del backend no
+   * rompa el portal.
+   */
+  estado: EstadoPedido;
+  prioridad: PrioridadPedido;
+  valorDomicilio: number;
+  zona: string;
+}
+
+/**
+ * Sobre paginado del listado.
+ *
+ * `total` es el total que cumple los filtros, no la cantidad de `items`: con
+ * `tamano = 20`, la página 2 trae 20 items y un `total` de, por ejemplo, 137.
+ */
+export interface PaginaPedidos {
+  items: PedidoSinAsignar[];
+  total: number;
+  pagina: number;
+  tamano: number;
+}
+
+/**
+ * Filtros del listado.
+ *
+ * Todos opcionales a propósito: lo que no viene no se manda en el query string y
+ * el backend aplica su valor por defecto. `esperaMin` es un umbral —"los que
+ * llevan más de N minutos esperando"—, no un rango.
+ */
+export interface FiltrosPedidos {
+  zona?: string;
+  prioridad?: PrioridadPedido;
+  esperaMin?: number;
+  pagina?: number;
+  tamano?: number;
+}

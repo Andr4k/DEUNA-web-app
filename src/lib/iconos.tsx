@@ -173,6 +173,35 @@ export const TRAZOS: Record<string, ReactNode> = {
   ),
   "chevron-izquierda": <path d="m14.5 5-7 7 7 7" />,
   "chevron-derecha": <path d="m9.5 5 7 7-7 7" />,
+  "chevron-abajo": <path d="m5 9.5 7 7 7-7" />,
+  salir: (
+    <>
+      <path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3" />
+      <path d="m16 17 5-5-5-5" />
+      <path d="M21 12H9" />
+    </>
+  ),
+  // Los tres del rediseño de métricas de calificaciones. Van dibujados con la misma
+  // rejilla de 24 y sin relleno, como el resto: el grosor lo pone el componente.
+  mensaje: (
+    <path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 20l1.8-4.9A7.5 7.5 0 1 1 20 11.5z" />
+  ),
+  tendencia: (
+    <>
+      <path d="M4 19V5" />
+      <path d="M4 19h16" />
+      <path d="M7.5 15.5l3.5-4 2.6 2.6L20 7.5" />
+      <path d="M16.5 7.5H20V11" />
+    </>
+  ),
+  premio: (
+    <>
+      <path d="M7 4h10v5.5a5 5 0 0 1-10 0z" />
+      <path d="M7 5.5H4.5V7a3 3 0 0 0 2.7 3" />
+      <path d="M17 5.5h2.5V7a3 3 0 0 1-2.7 3" />
+      <path d="M10 14.5V17l-2 4h8l-2-4v-2.5" />
+    </>
+  ),
 };
 
 /** Iconos que se pintan rellenos en lugar de trazados. */

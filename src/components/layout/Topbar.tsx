@@ -7,20 +7,24 @@ import { Boton } from "@/components/ui/Boton";
 import { Icono } from "@/components/ui/Icono";
 import { fechaLarga } from "@/lib/formato";
 import { NAVEGACION } from "@/lib/navegacion";
-import { USUARIO_ACTUAL } from "@/lib/sesion";
+import { etiquetaDeRol, inicialesDe } from "@/lib/sesion";
+import type { UsuarioSesion } from "@/lib/tipos/sesion";
 
 /**
  * Barra superior.
  *
  * El título sale de la ruta: la pantalla de inicio saluda, el resto muestra el
  * nombre de la sección. Así ninguna página repite su encabezado.
+ *
+ * El usuario llega por props desde el layout, que es quien puede leer la cookie
+ * de sesión. Este componente es cliente solo por el estado activo de la ruta.
  */
-export function Topbar() {
+export function Topbar({ usuario }: { usuario: UsuarioSesion }) {
   const ruta = usePathname();
   const esInicio = ruta === "/";
   const item = NAVEGACION.flatMap((s) => s.items).find((i) => i.href === ruta);
 
-  const titulo = esInicio ? `¡Bienvenido, ${primerNombre(USUARIO_ACTUAL.nombre)}!` : (item?.etiqueta ?? "DEUNA");
+  const titulo = esInicio ? `¡Bienvenido, ${primerNombre(usuario.nombre)}!` : (item?.etiqueta ?? "DEUNA");
   const subtitulo = esInicio ? `Así está DEUNA hoy, ${fechaLarga(new Date())}.` : undefined;
 
   return (
@@ -37,7 +41,7 @@ export function Topbar() {
         >
           <Icono nombre="calendario" />
           <span>Hoy, {fechaLarga(new Date())}</span>
-          <Icono nombre="chevron" tamano={15} />
+          <Icono nombre="chevron-abajo" tamano={15} />
         </button>
 
         <button
@@ -46,16 +50,13 @@ export function Topbar() {
           className="relative inline-flex text-texto-2 transition-colors hover:text-texto"
         >
           <Icono nombre="campana" tamano={22} />
-          <span className="absolute -top-1.5 -right-2 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-acento px-1.5 text-[11px] font-bold text-fondo">
-            9
-          </span>
         </button>
 
         <div className="flex items-center gap-2.5">
-          <Avatar tamano={32} />
+          <Avatar iniciales={inicialesDe(usuario.nombre)} tamano={32} />
           <div>
-            <div className="text-[13px] font-semibold">{USUARIO_ACTUAL.nombre}</div>
-            <div className="text-xs text-texto-2">{USUARIO_ACTUAL.rol}</div>
+            <div className="text-[13px] font-semibold">{usuario.nombre}</div>
+            <div className="text-xs text-texto-2">{etiquetaDeRol(usuario.rol)}</div>
           </div>
         </div>
 

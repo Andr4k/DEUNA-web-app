@@ -36,8 +36,13 @@ interface Props {
  *
  * El tono define borde, fondo y color de la acción a la vez: así un bloque no
  * puede quedar con el borde rojo y el botón amarillo.
+ *
+ * Se llama `BloqueAtencion` y no `Alerta` a propósito: "alerta" describía
+ * cualquier aviso, y un mensaje de error en un formulario necesita otra cosa.
+ * Con el nombre viejo, el primero que buscaba "mostrar un error" usaba este
+ * componente y descubría que todos sus props eran obligatorios.
  */
-export function Alerta({ tono, icono, titulo, valor, detalle, accion, href }: Props) {
+export function BloqueAtencion({ tono, icono, titulo, valor, detalle, accion, href }: Props) {
   const t = TONOS[tono];
 
   return (

@@ -17,14 +17,18 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function Boton({
   variante = "contorno",
   grande = false,
+  // El tipo por defecto va acá y no fijo en el `<button>`: puesto fijo, el
+  // `{...resto}` lo pisaba igual, pero un `type="submit"` escrito antes de la
+  // propagación es una trampa esperando al próximo que lo lea.
+  type = "button",
   className = "",
   children,
   ...resto
 }: Props) {
   return (
     <button
-      type="button"
-      className={`inline-flex items-center gap-2 rounded-control border font-semibold transition-colors ${
+      type={type}
+      className={`inline-flex items-center gap-2 rounded-control border font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
         grande ? "w-full justify-between px-5 py-4 text-[15px]" : "px-4 py-2.5 text-[13px]"
       } ${VARIANTES[variante]} ${className}`}
       {...resto}
