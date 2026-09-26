@@ -15,7 +15,7 @@ const MARGEN = 8;
 /**
  * El promedio global a lo largo del tiempo.
  *
- * Es una serie simple, como pide el brief: una línea y los dos extremos anotados. No es
+ * Es una serie simple, como pide el brief: una línea y el último valor anotado. No es
  * un gráfico de librería porque no hace falta —son dos números y una polilínea— y traer
  * un paquete de gráficos para esto sería una dependencia más que mantener.
  *
@@ -50,31 +50,55 @@ function Serie({ puntos }: { puntos: Punto[] }) {
   const maximo = Math.max(...valores);
   const minimo = Math.min(...valores);
   const ultimo = puntos[puntos.length - 1];
+  const trazo = coordenadas(puntos, minimo, maximo);
+  const fin = trazo[trazo.length - 1];
+  const desde = fechaCorta(puntos[0].fecha);
+  const hasta = fechaCorta(ultimo.fecha);
+  const etiqueta = `Evolución del promedio entre ${desde} y ${hasta}, de ${calificacion(
+    minimo,
+  )} a ${calificacion(maximo)}, último ${nota(ultimo.promedio)}`;
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between text-[12px] text-texto-2">
-        <span>Máximo {calificacion(maximo)}</span>
-        <span>Último {nota(ultimo.promedio)}</span>
-      </div>
+      <p className="m-0 text-[12px] text-texto-2">Máximo {calificacion(maximo)}</p>
 
-      <svg
-        viewBox={`0 0 ${ANCHO} ${ALTO}`}
-        preserveAspectRatio="none"
-        className="h-24 w-full text-acento"
-        role="img"
-        aria-label={`Evolución del promedio entre ${fechaCorta(puntos[0].fecha)} y ${fechaCorta(ultimo.fecha)}, de ${calificacion(minimo)} a ${calificacion(maximo)}`}
-      >
-        <polyline
-          points={coordenadas(puntos, minimo, maximo).join(" ")}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
+      {/*
+        El badge va en HTML sobre el SVG y no adentro: el gráfico se estira con
+        `preserveAspectRatio="none"`, así que un `rect` o un `text` dentro del `viewBox`
+        saldría deformado —achatado o estirado según el ancho de la tarjeta—. Acá se
+        posiciona en porcentaje del cuadro, que con esa escala es exactamente el mismo
+        punto, y el número se lee con la tipografía del portal.
+      */}
+      <div className="relative">
+        <svg
+          viewBox={`0 0 ${ANCHO} ${ALTO}`}
+          preserveAspectRatio="none"
+          className="h-24 w-full text-acento"
+          role="img"
+          aria-label={etiqueta}
+        >
+          <polyline
+            points={trazo.map((punto) => `${punto.x.toFixed(1)},${punto.y.toFixed(1)}`).join(" ")}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+
+        <span
+          className="absolute rounded-[4px] bg-acento px-1.5 py-0.5 text-[11px] leading-none font-bold text-fondo"
+          style={{
+            left: `${(fin.x / ANCHO) * 100}%`,
+            top: `${(fin.y / ALTO) * 100}%`,
+            transform: "translate(calc(-100% - 5px), -50%)",
+          }}
+        >
+          {nota(ultimo.promedio)}
+        </span>
+      </div>
 
       <div className="flex items-baseline justify-between text-[12px] text-texto-3">
         <span>{fechaCorta(puntos[0].fecha)}</span>
@@ -90,16 +114,21 @@ function Serie({ puntos }: { puntos: Punto[] }) {
  *
  * Una serie plana —todos los días con el mismo promedio— no se puede escalar por rango
  * (dividiría por cero), así que se dibuja al medio: una línea recta que es exactamente
- * lo que pasó.
+ * lo que pasó. Devuelve números y no el texto del `points` porque el badge del último
+ * valor necesita la misma coordenada para posicionarse: calcularla dos veces es la forma
+ * segura de que un día la línea y el badge no coincidan.
  */
-function coordenadas(puntos: Punto[], minimo: number, maximo: number): string[] {
+function coordenadas(
+  puntos: Punto[],
+  minimo: number,
+  maximo: number,
+): { x: number; y: number }[] {
   const rango = maximo - minimo;
   const altura = ALTO - MARGEN * 2;
   const paso = ANCHO / (puntos.length - 1);
 
-  return puntos.map((punto, indice) => {
-    const x = indice * paso;
-    const y = rango === 0 ? MARGEN + altura / 2 : MARGEN + ((maximo - punto.promedio) / rango) * altura;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  });
+  return puntos.map((punto, indice) => ({
+    x: indice * paso,
+    y: rango === 0 ? MARGEN + altura / 2 : MARGEN + ((maximo - punto.promedio) / rango) * altura,
+  }));
 }

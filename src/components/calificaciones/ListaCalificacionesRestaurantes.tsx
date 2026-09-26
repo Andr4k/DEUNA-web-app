@@ -23,8 +23,10 @@ interface Props {
  * su barra, la distribución, los criterios), así que el aire de la tabla normal la vuelve
  * ilegible antes de que haga falta desplazarla.
  *
- * La promesa es la misma que recibe el bloque de promedio por aspecto: es un solo `fetch`
- * y dos secciones distintas que lo esperan cada una en su propio límite de Suspense.
+ * La promesa es la única que resuelve el listado: los cuatro bloques de arriba salen del
+ * resumen, así que la pantalla son dos `fetch` y no cinco. El bloque de promedio por
+ * criterios leía de esta tabla porque el resumen no exponía los aspectos; ahora los expone
+ * y los lee de allá.
  */
 export async function ListaCalificacionesRestaurantes({ datos, enlacePagina }: Props) {
   const pagina = await datos;

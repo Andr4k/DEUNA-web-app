@@ -132,7 +132,7 @@ export default async function PaginaCalificaciones({
         </Suspense>
 
         <Suspense fallback={<EsqueletoTarjeta lineas={5} />}>
-          <PromedioPorAspecto datos={pagina} />
+          <PromedioPorAspecto datos={resumen} />
         </Suspense>
 
         <Suspense fallback={<EsqueletoTarjeta lineas={5} />}>
@@ -144,14 +144,21 @@ export default async function PaginaCalificaciones({
         </Suspense>
       </div>
 
-      <Suspense fallback={<EsqueletoTarjeta lineas={8} />}>
-        <ListaCalificacionesRestaurantes
-          datos={pagina}
-          enlacePagina={(destino) =>
-            enlace(actuales, { pagina: destino > 1 ? String(destino) : undefined })
-          }
-        />
-      </Suspense>
+      {/*
+        El `id` es el destino de "Ver ranking completo" del bloque de top 5: no hay una
+        pantalla de ranking aparte, así que el botón lleva a la lista completa de
+        restaurantes —la única que existe— dentro de esta misma pantalla.
+      */}
+      <div id="ranking-restaurantes" className="scroll-mt-4">
+        <Suspense fallback={<EsqueletoTarjeta lineas={8} />}>
+          <ListaCalificacionesRestaurantes
+            datos={pagina}
+            enlacePagina={(destino) =>
+              enlace(actuales, { pagina: destino > 1 ? String(destino) : undefined })
+            }
+          />
+        </Suspense>
+      </div>
     </>
   );
 }
