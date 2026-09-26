@@ -25,6 +25,7 @@ export const NAVEGACION: SeccionNavegacion[] = [
     items: [
       { etiqueta: "Panel principal", href: "/", icono: "home" },
       { etiqueta: "Pedidos", href: "/pedidos", icono: "pedidos" },
+      { etiqueta: "Servicios finalizados", href: "/servicios-finalizados", icono: "check" },
       { etiqueta: "Restaurantes", href: "/restaurantes", icono: "tienda" },
       { etiqueta: "Domiciliarios", href: "/domiciliarios", icono: "moto" },
       { etiqueta: "Usuarios", href: "/usuarios", icono: "usuario" },
