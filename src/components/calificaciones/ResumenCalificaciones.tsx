@@ -1,10 +1,10 @@
+import { KpiMetrica } from "@/components/calificaciones/KpiMetrica";
 import { SIN_DATO } from "@/components/calificaciones/valoresCalificacion";
-import { Kpi } from "@/components/ui/Kpi";
-import { calificacion, numero } from "@/lib/formato";
+import { calificacion, numero, porcentaje } from "@/lib/formato";
 import type { ResumenCalificacionesRestaurantes as Resumen } from "@/lib/tipos/calificaciones-restaurantes";
 
 /**
- * Fila de seis indicadores de las calificaciones a restaurantes.
+ * Franja de seis indicadores de las calificaciones a restaurantes.
  *
  * Recibe la promesa y la espera acá adentro, así la pantalla no frena mientras los
  * números llegan.
@@ -13,9 +13,11 @@ import type { ResumenCalificacionesRestaurantes as Resumen } from "@/lib/tipos/c
  * operador compara peor los dos extremos —destacados y en alerta—, que es justo la
  * comparación que viene a hacer. Debajo de `xl` caen a dos columnas.
  *
- * Ninguna tarjeta lleva tendencia: el contrato del resumen no trae la comparación
- * contra el período anterior, y una fila "vs ayer" calculada en el frontend sería otro
- * cálculo de lo mismo —el que el contrato justamente evita—.
+ * Tres tarjetas llevan la variación que trae el resumen —el promedio contra el período
+ * anterior en puntos, y el total y el hoy en porcentaje—, y las tres la pasan en crudo:
+ * un delta calculado en el frontend sería otro cálculo de lo mismo, y podría decir un
+ * número distinto del que el backend usó para el suyo. Cuando el resumen la manda en
+ * `null` la tarjeta dice "Sin dato" en gris, nunca un 0% en verde.
  */
 export async function ResumenCalificaciones({ datos }: { datos: Promise<Resumen> }) {
   const resumen = await datos;
@@ -33,35 +35,50 @@ export async function ResumenCalificaciones({ datos }: { datos: Promise<Resumen>
 
 /** Cuánto se está calificando: el promedio, la cobertura, el total y el hoy. */
 function KpisDeVolumen({ resumen }: { resumen: Resumen }) {
+  const { variaciones } = resumen;
+  const promedio = resumen.promedioGlobal;
+
   return (
     <>
-      <Kpi
+      <KpiMetrica
         icono="estrella"
         colorIcono="text-alerta"
-        etiqueta="Calificación promedio"
-        valor={resumen.promedioGlobal === null ? SIN_DATO : calificacion(resumen.promedioGlobal)}
-        periodo={textoBase(resumen.totalCalificaciones)}
+        etiqueta="Calificación promedio global"
+        valor={promedio === null ? SIN_DATO : calificacion(promedio)}
+        sufijo={promedio === null ? undefined : "/ 5"}
+        contexto={textoBase(resumen.totalCalificaciones)}
+        variacion={puntos(variaciones.promedioVsPeriodoAnterior)}
+        comparacion="vs período anterior"
+        baja={variaciones.promedioVsPeriodoAnterior !== null && variaciones.promedioVsPeriodoAnterior < 0}
+        neutro={variaciones.promedioVsPeriodoAnterior === null}
       />
-      <Kpi
+      <KpiMetrica
         icono="tienda"
-        colorIcono="text-info"
-        etiqueta="Restaurantes calificados"
-        valor={`${numero(resumen.restaurantesCalificados)} / ${numero(resumen.restaurantesTotales)}`}
-        periodo="Sobre el total de restaurantes activos"
-      />
-      <Kpi
-        icono="reportes"
         colorIcono="text-morado"
-        etiqueta="Calificaciones"
-        valor={numero(resumen.totalCalificaciones)}
-        periodo="En el rango y la zona filtrados"
+        etiqueta="Restaurantes calificados"
+        valor={numero(resumen.restaurantesCalificados)}
+        sufijo={`/ ${numero(resumen.restaurantesTotales)}`}
+        contexto={textoCobertura(resumen.restaurantesCalificados, resumen.restaurantesTotales)}
       />
-      <Kpi
-        icono="reloj"
+      <KpiMetrica
+        icono="mensaje"
         colorIcono="text-info"
+        etiqueta="Total calificaciones"
+        valor={numero(resumen.totalCalificaciones)}
+        variacion={porcentual(variaciones.totalVsPeriodoAnterior)}
+        comparacion="vs período anterior"
+        baja={variaciones.totalVsPeriodoAnterior !== null && variaciones.totalVsPeriodoAnterior < 0}
+        neutro={variaciones.totalVsPeriodoAnterior === null}
+      />
+      <KpiMetrica
+        icono="tendencia"
+        colorIcono="text-exito"
         etiqueta="Calificaciones hoy"
         valor={numero(resumen.calificacionesHoy)}
-        periodo="Hoy"
+        variacion={porcentual(variaciones.hoyVsAyer)}
+        comparacion="vs ayer"
+        baja={variaciones.hoyVsAyer !== null && variaciones.hoyVsAyer < 0}
+        neutro={variaciones.hoyVsAyer === null}
       />
     </>
   );
@@ -77,27 +94,46 @@ function KpisDeVolumen({ resumen }: { resumen: Resumen }) {
 function KpisDeAtencion({ resumen }: { resumen: Resumen }) {
   return (
     <>
-      <Kpi
-        icono="flecha-arriba"
-        colorIcono="text-exito"
-        etiqueta="Destacados"
+      <KpiMetrica
+        icono="premio"
+        colorIcono="text-acento"
+        etiqueta="Restaurantes destacados"
         valor={numero(resumen.destacados.cantidad)}
-        periodo={`${calificacion(resumen.destacados.minimo)} o más`}
+        contexto={`Con promedio ≥ ${calificacion(resumen.destacados.minimo)}`}
       />
-      <Kpi
-        icono="triangulo"
+      <KpiMetrica
+        icono="alerta"
         colorIcono="text-peligro"
-        etiqueta="En alerta"
+        etiqueta="Restaurantes en alerta"
         valor={numero(resumen.enAlerta.cantidad)}
-        periodo={`${calificacion(resumen.enAlerta.maximo)} o menos`}
+        contexto={`Con promedio ≤ ${calificacion(resumen.enAlerta.maximo)}`}
       />
     </>
   );
 }
 
-/** "Sobre 1 calificación" / "Sobre 1.284 calificaciones". */
+/** "Basado en 1 calificación" / "Basado en 3.427 calificaciones". */
 function textoBase(cantidad: number): string {
   return cantidad === 1
-    ? "Sobre 1 calificación"
-    : `Sobre ${numero(cantidad)} calificaciones`;
+    ? "Basado en 1 calificación"
+    : `Basado en ${numero(cantidad)} calificaciones`;
+}
+
+/** "80,6% del total de restaurantes"; sin restaurantes activos no hay porcentaje. */
+function textoCobertura(calificados: number, totales: number): string {
+  if (totales === 0) return SIN_DATO;
+  return `${porcentaje((calificados / totales) * 100, 1)} del total de restaurantes`;
+}
+
+/**
+ * La diferencia del promedio en puntos ("0,3"), que NO es un porcentaje: el promedio va
+ * de 1 a 5 y así es como se lee. El signo va en la flecha de la tarjeta, no en el texto.
+ */
+function puntos(valor: number | null): string {
+  return valor === null ? SIN_DATO : calificacion(Math.abs(valor));
+}
+
+/** Una variación porcentual ("15,7%" / "12,1%"); `null` es "sin dato", no un 0%. */
+function porcentual(valor: number | null): string {
+  return valor === null ? SIN_DATO : porcentaje(Math.abs(valor), 1);
 }
