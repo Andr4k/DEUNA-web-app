@@ -88,6 +88,20 @@ export interface ResumenCalificacionesRestaurantes {
   totalCalificaciones: number;
   calificacionesHoy: number;
 
+  /** Los tres deltas del diseño, sobre el mismo conjunto filtrado que las filas. */
+  variaciones: {
+    /**
+     * La diferencia del PROMEDIO, en puntos (0,3), no un porcentaje: el promedio va
+     * de 1 a 5 y "subió 0,3" es lo que se lee; un porcentaje sería otra cuenta sobre
+     * el mismo dato. `null` cuando no hay período anterior con qué comparar.
+     */
+    promedioVsPeriodoAnterior: number | null;
+    /** La variación PORCENTUAL del total de calificaciones (15,7). `null` sin base. */
+    totalVsPeriodoAnterior: number | null;
+    /** La variación PORCENTUAL de hoy contra ayer (12,1). `null` sin base. */
+    hoyVsAyer: number | null;
+  };
+
   distribucion: {
     cinco: number;
     cuatro: number;
@@ -95,6 +109,18 @@ export interface ResumenCalificacionesRestaurantes {
     dos: number;
     una: number;
   };
+
+  /**
+   * El promedio por aspecto de TODO el filtro, no de la página: se agrega sobre el
+   * mismo conjunto que las filas, así el bloque de la pantalla y la tabla no pueden
+   * decir números distintos. Misma forma que los `aspectos` de cada fila —el criterio
+   * es texto libre—, así que llegan los que existan y no un conjunto fijo de nombres.
+   */
+  aspectos: {
+    criterio: string;
+    promedio: number;
+    cantidad: number;
+  }[];
 
   /** Para el gráfico. */
   evolucion: {
