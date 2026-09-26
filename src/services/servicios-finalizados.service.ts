@@ -4,6 +4,7 @@ import type {
   FiltrosServiciosFinalizados,
   RespuestaServiciosFinalizados,
 } from "@/lib/tipos/servicios-finalizados";
+import { instanteDelDia } from "@/lib/ventana";
 import { pedir } from "@/services/http";
 
 /**
@@ -39,16 +40,16 @@ export const serviciosFinalizadosService = {
  * lugar de recibir un `zona=` vacío que podría leerse como "zona vacía".
  *
  * `desde` y `hasta` llegan como DÍAS (`YYYY-MM-DD`), que es lo que elige el operador,
- * y acá se traducen a los instantes del contrato —donde `hasta` es EXCLUSIVO—. La
- * traducción vive acá y no en la pantalla porque es una decisión del contrato, no de
- * la vista: si viviera en la vista, cada pantalla que consulte el historial tendría
- * que acordarse del huso y de la exclusividad.
+ * y la traducción a los instantes del contrato —donde `hasta` es EXCLUSIVO— la hace
+ * `lib/ventana.ts`. Vive ahí y no acá porque es una decisión del contrato y no de este
+ * servicio: la pantalla de calificaciones pide ventanas con la misma regla, y dos copias
+ * del huso y de la exclusividad terminarían pidiendo rangos distintos para el mismo día.
  */
 function consulta(filtros: FiltrosServiciosFinalizados): string {
   const params = new URLSearchParams();
 
-  const desde = instante(filtros.desde, 0);
-  const hasta = instante(filtros.hasta, 1);
+  const desde = instanteDelDia(filtros.desde, 0);
+  const hasta = instanteDelDia(filtros.hasta, 1);
 
   if (desde) params.set("desde", desde);
   if (hasta) params.set("hasta", hasta);
@@ -64,25 +65,6 @@ function consulta(filtros: FiltrosServiciosFinalizados): string {
 
   const cadena = params.toString();
   return cadena ? `?${cadena}` : "";
-}
-
-/**
- * El día que eligió el operador, convertido al instante que espera el contrato.
- *
- * El operador piensa en días de calendario de Colombia y el contrato quiere instantes
- * ISO: se toma la medianoche de ese día en UTC-05:00 —el huso del país no tiene
- * horario de verano, así que desplazar 24 h no desfasa— y, para `hasta`, se avanza un
- * día, porque el rango lo cierra el backend de forma exclusiva. Un día que no se puede
- * parsear se descarta: mandar `Invalid Date` a la API es peor que no mandar el filtro.
- */
-function instante(dia: string | undefined, diasDesplazados: number): string | null {
-  if (!dia) return null;
-
-  const fecha = new Date(`${dia}T00:00:00-05:00`);
-  if (Number.isNaN(fecha.getTime())) return null;
-
-  if (diasDesplazados) fecha.setTime(fecha.getTime() + diasDesplazados * 86_400_000);
-  return fecha.toISOString();
 }
 
 /* --------------------------------------------------------------------------

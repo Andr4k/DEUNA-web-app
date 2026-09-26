@@ -4,6 +4,7 @@ import type {
   PaginaCalificacionesRestaurantes,
   ResumenCalificacionesRestaurantes,
 } from "@/lib/tipos/calificaciones-restaurantes";
+import { instanteDelDia } from "@/lib/ventana";
 import { pedir } from "@/services/http";
 
 /**
@@ -33,8 +34,17 @@ import { pedir } from "@/services/http";
  * La calificación se filtra por rango (`calificacionMin` / `calificacionMax`) y no por
  * un valor exacto: el operador busca "los que están entre 3 y 4", y un rango admite los
  * dos extremos por separado sin obligar a elegir entre ellos.
+ *
+ * `desde` NO es opcional por comodidad: el endpoint responde 400 si falta la ventana
+ * —"sin ventana la lista y el resumen no salen del mismo conjunto"—, y esa negativa es
+ * la garantía de que los KPIs y las filas se calculan sobre lo mismo. Pedir la lista sin
+ * fechas sería sortear justo lo que hace que los dos números coincidan.
  */
 export interface FiltrosCalificacionesRestaurantes {
+  /** Día `YYYY-MM-DD`; obligatorio, la pantalla lo resuelve antes de llamar. */
+  desde: string;
+  /** Día `YYYY-MM-DD`, opcional; el contrato lo cierra de forma exclusiva. */
+  hasta?: string;
   buscar?: string;
   zona?: string;
   tipoDeComida?: string;
@@ -74,14 +84,26 @@ export const calificacionesRestaurantesService = {
 /**
  * Query string con los filtros que vengan definidos.
  *
- * Los que no vienen no se mandan, así el backend aplica su valor por defecto en lugar
- * de recibir un `zona=` vacío que podría leerse como "zona vacía". `tipoDeComida`
- * todavía no tiene dato —llega en `null`—, pero el filtro se manda igual cuando el
- * operador lo escribe: el contrato lo acepta y el día que exista la fuente no hay que
- * tocar esto.
+ * La VENTANA va siempre, en las dos operaciones y antes que cualquier filtro: es lo que
+ * hace que el resumen y la lista se calculen sobre el mismo conjunto de calificaciones.
+ * Llega como días (`YYYY-MM-DD`) —es lo que elige el operador y lo que se escribe en la
+ * URL— y se traduce a los instantes del contrato, donde `hasta` es EXCLUSIVO, con
+ * `lib/ventana.ts`, que es donde vive esa regla para todas las pantallas.
+ *
+ * Los demás filtros solo se mandan si vienen: así el backend aplica su valor por defecto
+ * en lugar de recibir un `zona=` vacío que podría leerse como "zona vacía".
+ * `tipoDeComida` todavía no tiene dato —llega en `null`—, pero el filtro se manda igual
+ * cuando el operador lo escribe: el contrato lo acepta y el día que exista la fuente no
+ * hay que tocar esto.
  */
 function consulta(filtros: FiltrosCalificacionesRestaurantes, conPagina = true): string {
   const params = new URLSearchParams();
+
+  const desde = instanteDelDia(filtros.desde, 0);
+  const hasta = instanteDelDia(filtros.hasta, 1);
+
+  if (desde) params.set("desde", desde);
+  if (hasta) params.set("hasta", hasta);
 
   if (filtros.buscar) params.set("buscar", filtros.buscar);
   if (filtros.zona) params.set("zona", filtros.zona);
