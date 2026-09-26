@@ -43,23 +43,29 @@ export function KpiMetrica({
 }: Props) {
   return (
     <article className="flex min-h-[8.5rem] min-w-0 flex-col rounded-tarjeta border border-borde bg-panel p-4 shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_3px_rgba(0,0,0,0.15)]">
-      <div className="mb-2.5 flex items-center gap-2.5">
-        <Icono nombre={icono} tamano={21} className={colorIcono} />
-        <span className="text-[11px] font-semibold tracking-[0.03em] text-texto-2 uppercase">
-          {etiqueta}
-        </span>
-      </div>
+      {/* El icono va grande a la izquierda y el texto forma su propia columna a la
+          derecha. Es la organización del diseño: así el título, el valor y las líneas
+          del pie quedan alineados entre sí, y no debajo del icono. */}
+      <div className="flex min-w-0 flex-1 gap-3">
+        <Icono nombre={icono} tamano={30} className={`${colorIcono} mt-0.5 w-8 shrink-0`} />
 
-      <p className="m-0 flex items-baseline gap-1.5 text-[28px] leading-tight font-bold">
-        {valor}
-        {sufijo ? <small className="text-[13px] font-medium text-texto-3">{sufijo}</small> : null}
-      </p>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="text-[11px] font-semibold tracking-[0.03em] text-texto-2 uppercase">
+            {etiqueta}
+          </span>
 
-      <div className="mt-auto flex flex-col gap-1 pt-2">
-        {contexto ? <p className="m-0 text-xs text-texto-3">{contexto}</p> : null}
-        {variacion ? (
-          <Delta texto={variacion} comparacion={comparacion} baja={baja} neutro={neutro} />
-        ) : null}
+          <p className="m-0 mt-1 flex items-baseline gap-1.5 text-[28px] leading-tight font-bold">
+            {valor}
+            {sufijo ? <small className="text-[13px] font-medium text-texto-3">{sufijo}</small> : null}
+          </p>
+
+          <div className="mt-auto flex flex-col gap-1 pt-2">
+            {contexto ? <p className="m-0 text-xs text-texto-3">{contexto}</p> : null}
+            {variacion ? (
+              <Delta texto={variacion} comparacion={comparacion} baja={baja} neutro={neutro} />
+            ) : null}
+          </div>
+        </div>
       </div>
     </article>
   );

@@ -34,14 +34,13 @@ const POR_PAGINA = 10;
 const DIAS_POR_DEFECTO = 30;
 
 /**
- * Los cuatro bloques de resumen, en 2x2.
+ * Los cuatro bloques de resumen.
  *
- * No van en una sola fila de cuatro: cada bloque necesita unos 300 px para que la barra del
- * promedio por aspecto y los puntajes por criterio se lean, y a cuatro columnas el ancho no
- * alcanza hasta pantallas de 1920. En 2x2 cada bloque respira y los cuatro quedan a la vista
- * sin desplazarse.
+ * Van en una fila de cuatro desde `xl`, con la evolución más ancha y los aspectos más
+ * angostos, siguiendo las proporciones del diseño. En pantallas más chicas caen a 2x2 para
+ * que la barra del promedio por aspecto y los puntajes por criterio se lean.
  */
-const BLOQUES = "grid gap-4 lg:grid-cols-2";
+const BLOQUES = "grid gap-4 sm:grid-cols-2 xl:grid-cols-[1.1fr_1fr_1.5fr_1.05fr]";
 
 /**
  * Calificaciones a restaurantes: los indicadores, los cuatro bloques de resumen y la tabla.
